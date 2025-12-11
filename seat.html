@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>座位查詢與平面圖亮燈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --gold: #c9a768;
+      --gold-soft: #e3cfa0;
+      --bg: #f4e9dd;
+      --text-main: #4a4036;
+      --text-sub: #7b6a5a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", system-ui, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #fdf7f0 0, var(--bg) 55%);
+      color: var(--text-main);
+      line-height: 1.8;
+      padding: 24px 12px 40px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 8px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .sub {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 18px;
+    }
+
+    .layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1.3px solid var(--gold-soft);
+      padding: 18px 18px 20px;
+      box-shadow: 0 10px 26px rgba(120, 93, 60, 0.12);
+    }
+
+    .card-title {
+      font-size: 14px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+    }
+
+    .seat-input {
+      width: 100%;
+      padding: 10px 11px;
+      border-radius: 0;
+      border: 1.4px solid var(--gold-soft);
+      font-size: 14px;
+      outline: none;
+      background: #fdf9f3;
+    }
+
+    .seat-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px rgba(201, 167, 104, 0.35);
+      background: #fff;
+    }
+
+    .seat-result {
+      margin-top: 10px;
+      padding: 10px 11px;
+      border: 1px solid var(--gold-soft);
+      background: #f9f1e4;
+      font-size: 13px;
+      display: none;
+    }
+
+    .hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    /* 平面圖區塊 */
+    .map-wrapper {
+      position: relative;
+      width: 100%;
+      background: #f7eee1;
+      border: 1px solid var(--gold-soft);
+      padding: 8px;
+    }
+
+    .map-inner {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .map-inner img {
+      width: 100%;
+      display: block;
+    }
+
+    /* 可點擊桌位（疊在圖片上的透明按鈕） */
+    .table-hotspot {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: box-shadow 0.15s ease-out, border-color 0.15s ease-out, transform 0.1s ease-out;
+    }
+
+    /* 預設看不到，只是個透明區域 */
+    .table-hotspot::after {
+      content: attr(data-label);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      color: transparent;
+      pointer-events: none;
+    }
+
+    /* 被「亮燈」的桌位 */
+    .table-hotspot.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(201, 167, 104, 0.35);
+      transform: scale(1.06);
+    }
+
+    .table-hotspot.active::after {
+      color: var(--gold);
+      font-weight: 600;
+      text-shadow: 0 0 4px #fff;
+    }
+
+    .map-legend {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-sub);
+      text-align: right;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>SEAT FINDER</h1>
+  <div class="sub">輸入姓名 → 找到桌號 → 平面圖上該桌亮燈</div>
+
+  <div class="layout">
+    <!-- 左：輸入姓名 -->
+    <div class="card">
+      <div class="card-title">GUEST SEARCH</div>
+      <div class="card-sub">請輸入您的姓名（與喜帖相同），系統會顯示您的桌次與座位。</div>
+
+      <input
+        id="seatInput"
+        class="seat-input"
+        type="text"
+        placeholder="例如：蔡名彥"
+        oninput="searchSeat()" />
+
+      <div class="hint">
+        ※ 支援輸入部分姓名，例如「小明」也可以找到「王小明」。
+      </div>
+
+      <div id="seatResult" class="seat-result"></div>
+    </div>
+
+    <!-- 右：平面圖 + 熱區（桌位亮燈） -->
+    <div class="map-wrapper card">
+      <div class="card-title">FLOOR PLAN</div>
+      <div class="card-sub">查詢結果會在右側平面圖上高亮顯示對應桌位。</div>
+
+      <div class="map-inner">
+        <!-- TODO：將 src 換成你實際上傳的平面圖檔案路徑 -->
+        <img src="venue-map.jpg" alt="婚宴會場桌位平面圖" />
+
+        <!-- 示範：幾個桌位熱區，位置用百分比調整 -->
+        <!-- 你之後可以依照實際圖像調整 top / left / width / height -->
+
+        <!-- 主桌（示意） -->
+        <div
+          class="table-hotspot"
+          data-table="主桌"
+          data-label="主桌"
+          style="top: 52%; left: 50%; width: 7%; height: 7%; transform: translate(-50%, -50%);">
+        </div>
+
+        <!-- 第1桌（示意） -->
+        <div
+          class="table-hotspot"
+          data-table="1"
+          data-label="1"
+          style="top: 30%; left: 25%; width: 6%; height: 6%; transform: translate(-50%, -50%);">
+        </div>
+
+        <!-- 第2桌（示意） -->
+        <div
+          class="table-hotspot"
+          data-table="2"
+          data-label="2"
+          style="top: 30%; left: 40%; width: 6%; height: 6%; transform: translate(-50%, -50%);">
+        </div>
+
+        <!-- 第3桌（示意） -->
+        <div
+          class="table-hotspot"
+          data-table="3"
+          data-label="3"
+          style="top: 30%; left: 60%; width: 6%; height: 6%; transform: translate(-50%, -50%);">
+        </div>
+
+        <!-- 第4桌（示意） -->
+        <div
+          class="table-hotspot"
+          data-table="4"
+          data-label="4"
+          style="top: 30%; left: 75%; width: 6%; height: 6%; transform: translate(-50%, -50%);">
+        </div>
+
+        <!-- 之後你可以依照這個格式，繼續補 5～40 桌 -->
+      </div>
+
+      <div class="map-legend">
+        高亮桌位代表系統為您找到的桌次位置。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 座位資料（示範）
+    const SEAT_DATA = [
+      { name: "蔡名彥", table: "主桌", seat: "新郎席位" },
+      { name: "洪琪晴", table: "主桌", seat: "新娘席位" },
+      { name: "王小明", table: "1", seat: "A 座" },
+      { name: "張小美", table: "2", seat: "B 座" },
+      { name: "李小華", table: "3", seat: "C 座" },
+      { name: "陳大仁", table: "4", seat: "D 座" },
+      // 之後你可以把全名單塞進來
+    ];
+
+    function clearActiveTables() {
+      document.querySelectorAll(".table-hotspot.active").forEach(el => {
+        el.classList.remove("active");
+      });
+    }
+
+    function highlightTables(tableIds) {
+      clearActiveTables();
+      tableIds.forEach(table => {
+        const selector = `.table-hotspot[data-table="${table}"]`;
+        const el = document.querySelector(selector);
+        if (el) {
+          el.classList.add("active");
+        }
+      });
+    }
+
+    function searchSeat() {
+      const input = document.getElementById("seatInput").value.trim();
+      const resultBox = document.getElementById("seatResult");
+
+      if (!input) {
+        resultBox.style.display = "none";
+        clearActiveTables();
+        return;
+      }
+
+      const keyword = input.toLowerCase();
+      const matches = SEAT_DATA.filter(item =>
+        item.name.toLowerCase().includes(keyword)
+      );
+
+      if (matches.length === 0) {
+        resultBox.innerHTML = "查無此姓名，請確認是否與喜帖相同，或向現場服務人員協助查詢。";
+        highlightTables([]);
+      } else if (matches.length === 1) {
+        const g = matches[0];
+        resultBox.innerHTML = `✅ 歡迎您，<b>${g.name}</b><br>桌號：${g.table} 桌<br>座位：${g.seat}`;
+        highlightTables([g.table]);
+      } else {
+        // 多筆結果
+        resultBox.innerHTML = matches
+          .map(g => `• ${g.name}：${g.table} 桌，座位 ${g.seat}`)
+          .join("<br>");
+        const tables = [...new Set(matches.map(g => g.table))];
+        highlightTables(tables);
+      }
+
+      resultBox.style.display = "block";
+    }
+
+    // 讓點桌位也能顯示資訊（選桌反查）
+    document.addEventListener("click", (e) => {
+      const hotspot = e.target.closest(".table-hotspot");
+      if (!hotspot) return;
+
+      const tableId = hotspot.getAttribute("data-table");
+      const resultBox = document.getElementById("seatResult");
+
+      const guests = SEAT_DATA.filter(g => g.table === tableId);
+      if (guests.length === 0) {
+        resultBox.innerHTML = `此桌目前尚無座位資訊（桌號：${tableId}）`;
+      } else {
+        resultBox.innerHTML = guests
+          .map(g => `• ${g.name}：座位 ${g.seat}`)
+          .join("<br>");
+      }
+      resultBox.style.display = "block";
+      highlightTables([tableId]);
+    });
+  </script>
+</body>
+</html>
