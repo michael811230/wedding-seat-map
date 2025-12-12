@@ -341,54 +341,54 @@ SEAT_DATA.forEach(item => {
     }
 
     function searchSeat() {
-      const input = document.getElementById("seatInput").value.trim();
-      const resultBox = document.getElementById("seatResult");
+  const input = document.getElementById("seatInput").value.trim();
+  const resultBox = document.getElementById("seatResult");
 
-      if (!input) {
-        resultBox.style.display = "none";
-        clearActiveTables();
-        return;
-      }
+  if (!input) {
+    resultBox.style.display = "none";
+    clearActiveTables();
+    return;
+  }
 
-      const keyword = input.toLowerCase();
-      const matches = SEAT_DATA.filter(item =>
-        item.name.toLowerCase().includes(keyword)
-      );
+  const keyword = input.toLowerCase();
+  const matches = SEAT_DATA.filter(item =>
+    item.name.toLowerCase().includes(keyword)
+  );
 
-      if (matches.length === 0) {
-        resultBox.innerHTML = "查無此姓名，請確認是否與喜帖相同，或向現場服務人員協助查詢。";
-        highlightTables([]);
-     } else if (matches.length === 1) {
-  const g = matches[0];
+  if (matches.length === 0) {
+    resultBox.innerHTML = "查無此姓名，請確認是否與喜帖相同，或向現場服務人員協助查詢。";
+    highlightTables([]);
+  
+  } else if (matches.length === 1) {
 
-  // 找出同桌所有人
-  const sameTableGuests = SEAT_DATA.filter(item => item.table === g.table);
+    const g = matches[0];
 
-  resultBox.innerHTML = `
-    ✅ 歡迎您，<b>${g.name}</b><br>
-    桌號：${g.table} 桌<br>
-    座位：${g.seat}<br><br>
-    <b>【${g.table} 桌所有賓客】</b><br>
-    ${sameTableGuests.map(p => "• " + p.name + "（座位 " + p.seat + "）").join("<br>")}
-  `;
+    // ✅ 找出同桌所有人（功能 D）
+    const sameTableGuests = SEAT_DATA.filter(item => item.table === g.table);
 
-  highlightTables([g.table]);
-        }  // ✅ 補上這個
+    resultBox.innerHTML = `
+      ✅ 歡迎您，<b>${g.name}</b><br>
+      桌號：${g.table} 桌<br>
+      座位：${g.seat}<br><br>
+      <b>【${g.table} 桌所有賓客】</b><br>
+      ${sameTableGuests.map(p => "• " + p.name + "（座位 " + p.seat + "）").join("<br>")}
+    `;
 
-}  // ✅ 再補上這個（結束 searchSeat）
+    highlightTables([g.table]);
 
+  } else {
 
-      } else {
-        // 多筆結果
-        resultBox.innerHTML = matches
-          .map(g => `• ${g.name}：${g.table} 桌，座位 ${g.seat}`)
-          .join("<br>");
-        const tables = [...new Set(matches.map(g => g.table))];
-        highlightTables(tables);
-      }
+    // ✅ 多筆結果（維持原本功能）
+    resultBox.innerHTML = matches
+      .map(g => `• ${g.name}：${g.table} 桌，座位 ${g.seat}`)
+      .join("<br>");
 
-      resultBox.style.display = "block";
-    }
+    const tables = [...new Set(matches.map(g => g.table))];
+    highlightTables(tables);
+  }
+
+  resultBox.style.display = "block";
+}
 
     // ✅ 用 seat 查詢這桌有哪些人
 function findGuestsBySeat(seatName) {
@@ -425,6 +425,7 @@ function findGuestsBySeat(seatName) {
   </script>
 </body>
 </html>
+
 
 
 
