@@ -300,12 +300,18 @@
   <script>
     // 座位資料（示範）
     const SEAT_DATA = [
-      { name: "蔡名彥", table: "主桌", seat: "主桌" },
-      { name: "洪琪晴", table: "主桌", seat: "主桌" },
-      { name: "游人傑", table: "1", seat: "台灣安全產業A" },
-      { name: "黃文益", table: "2", seat: "台灣安全產業B" },
-      { name: "黃大杰", table: "3", seat: "台灣安全產業C" },
-      { name: "陳大仁", table: "4", seat: "D 座" },
+      { name: "蔡名彥", table: "主桌", seat: "新郎" },
+      { name: "洪琪晴", table: "主桌", seat: "新娘" },
+      { name: "洪文靖", table: "主桌", seat: "女方主婚人" },
+      { name: "李佳蓉", table: "主桌", seat: "女方主婚人" },
+      { name: "蔡光熙", table: "主桌", seat: "男方主婚人" },
+      { name: "陳玉慧", table: "主桌", seat: "男方主婚人" },
+      { name: "陳榮貴", table: "主桌", seat: "男方長輩" },
+      { name: "陳林美蓮", table: "主桌", seat: "男方長輩" },
+      { name: "陳宏坤", table: "主桌", seat: "男方舅舅" },
+      { name: "李燦榮", table: "主桌", seat: "女方舅舅" },
+      { name: "", table: "主桌", seat: "女方舅舅" },
+      { name: "蔡光明", table: "主桌", seat: "男方長輩" },
       // 西網扶輪社 A（桌號 5）
       { name: "陳建宏", table: "5", seat: "西網扶輪社 A" },
       { name: "陳建宏", table: "5", seat: "西網扶輪社 A" },
@@ -329,6 +335,18 @@
       { name: "林科宇", table: "7", seat: "西網扶輪社 B" },
       { name: "吳振豪", table: "7", seat: "西網扶輪社 B" },
       { name: "游榮富", table: "7", seat: "西網扶輪社 B" },
+
+      // 爸爸同學 B（桌號 12）
+      { name: "王仲儀", table: "12", seat: "爸爸同學 B" },
+      { name: "王仲儀", table: "12", seat: "爸爸同學 B" },
+      { name: "陳志明", table: "12", seat: "爸爸同學 B" },
+      { name: "陳志明", table: "12", seat: "爸爸同學 B" },
+      { name: "張鎮非", table: "12", seat: "爸爸同學 B" },
+      { name: "張鎮非", table: "12", seat: "爸爸同學 B" },
+      { name: "申德光", table: "12", seat: "爸爸同學 B" },
+      { name: "申德光", table: "12", seat: "爸爸同學 B" },
+      { name: "吳志雄", table: "12", seat: "爸爸同學 B" },
+      { name: "吳志雄", table: "12", seat: "爸爸同學 B" },
 
       // 之後你可以把全名單塞進來
     ];
@@ -449,6 +467,7 @@ function findGuestsBySeat(seatName) {
   </script>
 </body>
 </html>
+
 
 
 
