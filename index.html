@@ -263,28 +263,28 @@
         <div
           class="table-hotspot"
           data-table="7"
-          style="top: 67%; left: 16%; width: 9%; height: 6%; transform: translate(-52%, -49%);">
+          style="top: 68%; left: 16%; width: 9%; height: 6%; transform: translate(-49%, -57%);">
         </div>
 
          <!-- 第8桌（示意） -->
         <div
           class="table-hotspot"
           data-table="8"
-          style="top: 73%; left: 23%; width: 9%; height: 6%; transform: translate(-52%, -49%);">
+          style="top: 73%; left: 23%; width: 9%; height: 6%; transform: translate(-51%, -44%);">
         </div> 
 
          <!-- 第9桌（示意） -->
         <div
           class="table-hotspot"
           data-table="9"
-          style="top: 78%; left: 16%; width: 9%; height: 6%; transform: translate(-52%, -49%);">
+          style="top: 79%; left: 16%; width: 9%; height: 6%; transform: translate(-50%, -43%);">
         </div>
 
             <!-- 第10桌（示意） -->
         <div
           class="table-hotspot"
           data-table="10"
-          style="top: 84%; left: 23%; width: 9%; height: 6%; transform: translate(-52%, -49%);">
+          style="top: 85%; left: 24%; width: 9%; height: 6%; transform: translate(-52%, -54%);">
         </div>
 
         
@@ -300,14 +300,28 @@
   <script>
     // 座位資料（示範）
     const SEAT_DATA = [
-      { name: "蔡名彥", table: "主桌", seat: "新郎席位" },
-      { name: "洪琪晴", table: "主桌", seat: "新娘席位" },
+      { name: "蔡名彥", table: "主桌", seat: "主桌" },
+      { name: "洪琪晴", table: "主桌", seat: "主桌" },
       { name: "游人傑", table: "1", seat: "台灣安全產業A" },
       { name: "黃文益", table: "2", seat: "台灣安全產業B" },
       { name: "黃大杰", table: "3", seat: "台灣安全產業C" },
       { name: "陳大仁", table: "4", seat: "D 座" },
       // 之後你可以把全名單塞進來
     ];
+
+    // ✅ 建立 seat → 名字列表（反查用）
+const seatToGuests = {};
+
+SEAT_DATA.forEach(item => {
+  const seat = item.seat;
+  const name = item.name;
+
+  if (!seatToGuests[seat]) {
+    seatToGuests[seat] = [];
+  }
+  seatToGuests[seat].push(name);
+});
+
 
     function clearActiveTables() {
       document.querySelectorAll(".table-hotspot.active").forEach(el => {
@@ -344,10 +358,26 @@
       if (matches.length === 0) {
         resultBox.innerHTML = "查無此姓名，請確認是否與喜帖相同，或向現場服務人員協助查詢。";
         highlightTables([]);
-      } else if (matches.length === 1) {
-        const g = matches[0];
-        resultBox.innerHTML = `✅ 歡迎您，<b>${g.name}</b><br>桌號：${g.table} 桌<br>座位：${g.seat}`;
-        highlightTables([g.table]);
+     } else if (matches.length === 1) {
+  const g = matches[0];
+
+  // 找出同桌所有人
+  const sameTableGuests = SEAT_DATA.filter(item => item.table === g.table);
+
+  resultBox.innerHTML = `
+    ✅ 歡迎您，<b>${g.name}</b><br>
+    桌號：${g.table} 桌<br>
+    座位：${g.seat}<br><br>
+    <b>【${g.table} 桌所有賓客】</b><br>
+    ${sameTableGuests.map(p => "• " + p.name + "（座位 " + p.seat + "）").join("<br>")}
+  `;
+
+  highlightTables([g.table]);
+        }  // ✅ 補上這個
+
+}  // ✅ 再補上這個（結束 searchSeat）
+
+
       } else {
         // 多筆結果
         resultBox.innerHTML = matches
@@ -360,6 +390,19 @@
       resultBox.style.display = "block";
     }
 
+    // ✅ 用 seat 查詢這桌有哪些人
+function findGuestsBySeat(seatName) {
+  const guests = seatToGuests[seatName];
+
+  if (!guests) {
+    alert(`找不到「${seatName}」這個座位`);
+    return;
+  }
+
+  alert(`【${seatName}】\n\n${guests.join("\n")}`);
+}
+
+    
     // 讓點桌位也能顯示資訊（選桌反查）
     document.addEventListener("click", (e) => {
       const hotspot = e.target.closest(".table-hotspot");
@@ -382,6 +425,7 @@
   </script>
 </body>
 </html>
+
 
 
 
